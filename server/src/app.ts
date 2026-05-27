@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 
 import { initializeDatabase } from './db/schema.js';
+import { tasksRouter } from './routes/tasks.routes.js';
 
 export const createApp = () => {
   const app = express();
@@ -17,6 +18,8 @@ export const createApp = () => {
       message: 'Project Task Manager API is running'
     });
   });
+
+  app.use('/api/tasks', tasksRouter);
 
   return app;
 };
