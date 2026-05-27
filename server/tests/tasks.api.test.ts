@@ -94,6 +94,26 @@ describe('tasks API', () => {
     expect(response.body.error).toBe('Task not found.');
   });
 
+
+  it('rejects invalid completed values', async () => {
+    const createResponse = await request(app)
+      .post('/api/tasks')
+      .send({ title: 'Invalid completed value test' });
+
+    const response = await request(app)
+      .patch(`/api/tasks/${createResponse.body.id}`)
+      .send({ completed: 'yes' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('Completed must be true or false.');
+  });
+
+  it('returns 404 when deleting a missing task', async () => {
+    const response = await request(app).delete('/api/tasks/999');
+
+    expect(response.status).toBe(404);
+    expect(response.body.error).toBe('Task not found.');
+  });
   it('deletes a task', async () => {
     const createResponse = await request(app)
       .post('/api/tasks')
@@ -128,3 +148,4 @@ describe('tasks API', () => {
     expect(listResponse.body[0].id).toBe(activeTask.body.id);
   });
 });
+
