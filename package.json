@@ -4,7 +4,7 @@
   "private": true,
   "description": "A full-stack task management application with CRUD functionality, backend persistence, filtering, editing, and tests.",
   "scripts": {
-    "test": "echo \"Tests will be configured after client and server setup.\""
+    "test": "npm test --workspace server"
   },
   "workspaces": [
     "client",
