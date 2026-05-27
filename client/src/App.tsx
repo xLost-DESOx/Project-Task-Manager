@@ -7,15 +7,14 @@ import {
   fetchTasks,
   updateTask
 } from './api/tasksApi';
+import { TaskFilters, type TaskFilter } from './components/TaskFilters';
 import { TaskForm } from './components/TaskForm';
 import type { Task } from './types/task';
-
-type Filter = 'all' | 'active' | 'completed';
 
 const App = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [filter, setFilter] = useState<Filter>('all');
+  const [filter, setFilter] = useState<TaskFilter>('all');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -209,29 +208,12 @@ const App = () => {
 
         {errorMessage ? <p className="error-message">{errorMessage}</p> : null}
 
-        <section className="toolbar" aria-label="Task filters">
-          <div className="filter-group">
-            {(['all', 'active', 'completed'] as Filter[]).map((filterOption) => (
-              <button
-                className={filter === filterOption ? 'filter-button active' : 'filter-button'}
-                key={filterOption}
-                onClick={() => setFilter(filterOption)}
-                type="button"
-              >
-                {filterOption}
-              </button>
-            ))}
-          </div>
-
-          <button
-            className="secondary-button"
-            disabled={completedTaskCount === 0}
-            onClick={handleClearCompleted}
-            type="button"
-          >
-            Clear completed
-          </button>
-        </section>
+        <TaskFilters
+          completedTaskCount={completedTaskCount}
+          filter={filter}
+          onClearCompleted={handleClearCompleted}
+          onFilterChange={setFilter}
+        />
 
         <section className="task-list" aria-live="polite">
           {isLoading ? <p className="empty-state">Loading tasks...</p> : null}
@@ -299,6 +281,7 @@ const App = () => {
 };
 
 export default App;
+
 
 
 
