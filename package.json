@@ -1,0 +1,13 @@
+{
+  "name": "project-task-manager",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A full-stack task management application with CRUD functionality, backend persistence, filtering, editing, and tests.",
+  "scripts": {
+    "test": "echo \"Tests will be configured after client and server setup.\""
+  },
+  "workspaces": [
+    "client",
+    "server"
+  ]
+}
