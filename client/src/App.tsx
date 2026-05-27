@@ -9,6 +9,7 @@ import {
 } from './api/tasksApi';
 import { TaskFilters, type TaskFilter } from './components/TaskFilters';
 import { TaskForm } from './components/TaskForm';
+import { TaskItem } from './components/TaskItem';
 import type { Task } from './types/task';
 
 const App = () => {
@@ -222,58 +223,20 @@ const App = () => {
             <p className="empty-state">No tasks to show for this filter.</p>
           ) : null}
 
-          {visibleTasks.map((task) => {
-            const isEditing = editingTaskId === task.id;
-
-            return (
-              <article className={task.completed ? 'task-item completed' : 'task-item'} key={task.id}>
-                {isEditing ? (
-                  <div className="edit-row">
-                    <input
-                      aria-label="Edit task title"
-                      maxLength={200}
-                      onChange={(event) => setEditingTitle(event.target.value)}
-                      value={editingTitle}
-                    />
-                    <button onClick={() => void handleSaveEditing(task)} type="button">
-                      Save
-                    </button>
-                    <button className="secondary-action" onClick={handleCancelEditing} type="button">
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <label className="task-check">
-                      <input
-                        checked={task.completed}
-                        onChange={() => void handleToggleTask(task)}
-                        type="checkbox"
-                      />
-                      <span>{task.title}</span>
-                    </label>
-
-                    <div className="task-actions">
-                      <button
-                        className="edit-button"
-                        onClick={() => handleStartEditing(task)}
-                        type="button"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="delete-button"
-                        onClick={() => void handleDeleteTask(task)}
-                        type="button"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </>
-                )}
-              </article>
-            );
-          })}
+          {visibleTasks.map((task) => (
+            <TaskItem
+              editingTaskId={editingTaskId}
+              editingTitle={editingTitle}
+              key={task.id}
+              onCancelEditing={handleCancelEditing}
+              onDeleteTask={(selectedTask) => void handleDeleteTask(selectedTask)}
+              onEditingTitleChange={setEditingTitle}
+              onSaveEditing={(selectedTask) => void handleSaveEditing(selectedTask)}
+              onStartEditing={handleStartEditing}
+              onToggleTask={(selectedTask) => void handleToggleTask(selectedTask)}
+              task={task}
+            />
+          ))}
         </section>
       </section>
     </main>
@@ -281,6 +244,7 @@ const App = () => {
 };
 
 export default App;
+
 
 
 
