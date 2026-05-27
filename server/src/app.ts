@@ -1,8 +1,12 @@
 import cors from 'cors';
 import express from 'express';
 
+import { initializeDatabase } from './db/schema.js';
+
 export const createApp = () => {
   const app = express();
+
+  initializeDatabase();
 
   app.use(cors());
   app.use(express.json());
