@@ -7,6 +7,7 @@ import {
   fetchTasks,
   updateTask
 } from './api/tasksApi';
+import { TaskForm } from './components/TaskForm';
 import type { Task } from './types/task';
 
 type Filter = 'all' | 'active' | 'completed';
@@ -199,21 +200,12 @@ const App = () => {
           </div>
         </header>
 
-        <form className="task-form" onSubmit={handleCreateTask}>
-          <label htmlFor="task-title">New task</label>
-          <div className="task-form-row">
-            <input
-              id="task-title"
-              maxLength={200}
-              onChange={(event) => setNewTaskTitle(event.target.value)}
-              placeholder="Add a task..."
-              value={newTaskTitle}
-            />
-            <button type="submit" disabled={isSaving}>
-              {isSaving ? 'Adding...' : 'Add task'}
-            </button>
-          </div>
-        </form>
+        <TaskForm
+          isSaving={isSaving}
+          newTaskTitle={newTaskTitle}
+          onSubmit={handleCreateTask}
+          onTitleChange={setNewTaskTitle}
+        />
 
         {errorMessage ? <p className="error-message">{errorMessage}</p> : null}
 
@@ -307,6 +299,7 @@ const App = () => {
 };
 
 export default App;
+
 
 
 
