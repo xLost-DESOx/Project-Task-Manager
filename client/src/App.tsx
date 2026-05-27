@@ -18,6 +18,8 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
 
   const activeTaskCount = tasks.filter((task) => !task.completed).length;
   const completedTaskCount = tasks.length - activeTaskCount;
@@ -60,6 +62,15 @@ const App = () => {
       return;
     }
 
+    const alreadyExists = tasks.some(
+      (task) => task.title.trim().toLowerCase() === title.toLowerCase()
+    );
+
+    if (alreadyExists) {
+      setErrorMessage('That task already exists.');
+      return;
+    }
+
     try {
       setIsSaving(true);
       setErrorMessage('');
@@ -85,11 +96,22 @@ const App = () => {
     }
   };
 
-  const handleDeleteTask = async (taskId: number) => {
+  const handleDeleteTask = async (task: Task) => {
+    const shouldDelete = window.confirm(`Delete "${task.title}"? This cannot be undone.`);
+
+    if (!shouldDelete) {
+      return;
+    }
+
     try {
       setErrorMessage('');
-      await deleteTask(taskId);
-      setTasks((currentTasks) => currentTasks.filter((task) => task.id !== taskId));
+      await deleteTask(task.id);
+      setTasks((currentTasks) => currentTasks.filter((currentTask) => currentTask.id !== task.id));
+
+      if (editingTaskId === task.id) {
+        setEditingTaskId(null);
+        setEditingTitle('');
+      }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to delete task.');
     }
@@ -100,8 +122,62 @@ const App = () => {
       setErrorMessage('');
       await clearCompletedTasks();
       setTasks((currentTasks) => currentTasks.filter((task) => !task.completed));
+      setEditingTaskId(null);
+      setEditingTitle('');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to clear completed tasks.');
+    }
+  };
+
+  const handleStartEditing = (task: Task) => {
+    setErrorMessage('');
+    setEditingTaskId(task.id);
+    setEditingTitle(task.title);
+  };
+
+  const handleCancelEditing = () => {
+    setEditingTaskId(null);
+    setEditingTitle('');
+  };
+
+  const handleSaveEditing = async (task: Task) => {
+    const title = editingTitle.trim();
+
+    if (!title) {
+      setErrorMessage('Task title cannot be empty.');
+      return;
+    }
+
+    if (title === task.title) {
+      handleCancelEditing();
+      return;
+    }
+
+    const alreadyExists = tasks.some(
+      (currentTask) =>
+        currentTask.id !== task.id && currentTask.title.trim().toLowerCase() === title.toLowerCase()
+    );
+
+    if (alreadyExists) {
+      setErrorMessage('Another task already uses that title.');
+      return;
+    }
+
+    const shouldSave = window.confirm(`Save changes to "${task.title}"?`);
+
+    if (!shouldSave) {
+      return;
+    }
+
+    try {
+      setErrorMessage('');
+      const updatedTask = await updateTask(task.id, { title });
+      setTasks((currentTasks) =>
+        currentTasks.map((currentTask) => (currentTask.id === task.id ? updatedTask : currentTask))
+      );
+      handleCancelEditing();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to edit task.');
     }
   };
 
@@ -113,7 +189,7 @@ const App = () => {
             <p className="eyebrow">Project Task Manager</p>
             <h1>Organize your work.</h1>
             <p className="hero-copy">
-              Add tasks, track progress, and keep completed work out of the way.
+              Add tasks, track progress, edit details, and keep completed work out of the way.
             </p>
           </div>
 
@@ -172,26 +248,58 @@ const App = () => {
             <p className="empty-state">No tasks to show for this filter.</p>
           ) : null}
 
-          {visibleTasks.map((task) => (
-            <article className={task.completed ? 'task-item completed' : 'task-item'} key={task.id}>
-              <label className="task-check">
-                <input
-                  checked={task.completed}
-                  onChange={() => void handleToggleTask(task)}
-                  type="checkbox"
-                />
-                <span>{task.title}</span>
-              </label>
+          {visibleTasks.map((task) => {
+            const isEditing = editingTaskId === task.id;
 
-              <button
-                className="delete-button"
-                onClick={() => void handleDeleteTask(task.id)}
-                type="button"
-              >
-                Delete
-              </button>
-            </article>
-          ))}
+            return (
+              <article className={task.completed ? 'task-item completed' : 'task-item'} key={task.id}>
+                {isEditing ? (
+                  <div className="edit-row">
+                    <input
+                      aria-label="Edit task title"
+                      maxLength={200}
+                      onChange={(event) => setEditingTitle(event.target.value)}
+                      value={editingTitle}
+                    />
+                    <button onClick={() => void handleSaveEditing(task)} type="button">
+                      Save
+                    </button>
+                    <button className="secondary-action" onClick={handleCancelEditing} type="button">
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <label className="task-check">
+                      <input
+                        checked={task.completed}
+                        onChange={() => void handleToggleTask(task)}
+                        type="checkbox"
+                      />
+                      <span>{task.title}</span>
+                    </label>
+
+                    <div className="task-actions">
+                      <button
+                        className="edit-button"
+                        onClick={() => handleStartEditing(task)}
+                        type="button"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="delete-button"
+                        onClick={() => void handleDeleteTask(task)}
+                        type="button"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </>
+                )}
+              </article>
+            );
+          })}
         </section>
       </section>
     </main>
@@ -199,3 +307,6 @@ const App = () => {
 };
 
 export default App;
+
+
+
